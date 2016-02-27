@@ -1,0 +1,33 @@
+* https://www.unrealircd.org/files/docs/unreal32docs.html#userchannelmodes
+* https://www.unrealircd.org/docs/Channel_modes
+* https://www.unrealircd.org/docs/User_modes
+* http://www.irchelp.org/irchelp/ircprimer.html
+* http://www.irchelp.org/irchelp/irctutorial.html
+* http://webchat.freenode.net/
+* http://webchat.freenode.net/?channels=%23the-aces&uio=d4
+** <iframe src="http://webchat.freenode.net?channels=%23the-aces&uio=d4" width="647" height="400"></iframe>
+
+# Create Channel on IRC Server
+# Setup permissions for all users
+# Create Bot, and give bot Permissions to channel
+# When Bot requires OP, or SOP, then bot will use appropriate commands to gain access
+# Complete command or function
+# Bot deops or desuperops itself to return to normal.
+# Channel must persist and always give permissions to bot, founder, and select people. 
+
+/nick newnickname
+/msg NickServ REGISTER password email@email.com
+/msg NickServ IDENTIFY password
+/msg ChanServ REGISTER #the-aces aceshigh "The Aces High!"
+/msg ChanServ IDENTIFY #the-aces aceshigh
+/msg ChanServ SET #the-aces FOUNDER  haylon
+/msg ChanServ SET #the-aces SUCCESSOR blackphoenix
+/msg ChanServ SET #the-aces DESC The Aces Wild Chat Room
+/msg ChanServ SET #the-aces URL http://the-aces.com
+/msg ChanServ SET #the-aces ENTRYMSG Welcome to the Aces Wild IRC Channel.
+/msg ChanServ SET #the-aces MLOCK +GfmnPt-v
+/msg ChanServ SET #the-aces KEEPTOPIC ON
+/msg ChanServ SET #the-aces OPNOTICE ON
+/msg ChanServ SET #the-aces TOPICLOCK ON
+/msg ChanServ SET #the-aces SECUREOPS ON
+/msg ChanServ TOPIC #the-aces putatopichereandstuff
