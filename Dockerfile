@@ -24,6 +24,8 @@ RUN cd ~/inspircd && git checkout v2.0.21
 # Setup and build inspircd
 RUN cd ~/inspircd; ./configure --enable-gnutls --enable-openssl --enable-epoll --enable-kqueue --prefix=/home/irc/ircd-build/
 RUN cd ~/inspircd; make; make install 
+# Need to add in SSL Certificate creation and placement
+
 # This might be changed to ADD and drop config files in there.
 RUN cd ~/ircd-build; cp conf/examples/inspircd.conf.example conf/
 # Setup and build Anope Services
