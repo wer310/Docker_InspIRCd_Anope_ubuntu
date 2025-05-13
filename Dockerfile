@@ -1,33 +1,57 @@
-#
-#
-#
-#
+FROM ubuntu:latest
 
-FROM centos:latest
+LABEL maintainer="Phillip Dudley" version="0.2.0"
 
-MAINTAINER Phillip Dudley version 0.1.0
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Install the required libraries
-RUN yum install -y epel-release
-RUN yum groupinstall -y "Development Tools"
-RUN yum install -y openssl-devel pkgconfig gnutls-devel gnutls-utils vim cmake
+# Обновляем и устанавливаем необходимые пакеты
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    git \
+    cmake \
+    pkg-config \
+    libssl-dev \
+    libgnutls28-dev \
+    gnutls-bin \
+    vim \
+    certbot \
+    python3-certbot \
+    sudo \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Create an IRC user to run the IRCd
-RUN groupadd irc; useradd -g irc irc 
-USER irc 
+# Создаём пользователя IRC
+RUN groupadd -r irc && useradd -m -g irc irc
+USER irc
+WORKDIR /home/irc
 
-# Clone and checkout the tagged versions of InspIRCd and Anope
-RUN cd ~; pwd; git clone https://github.com/anope/anope.git
-RUN cd ~; pwd; git clone https://github.com/inspircd/inspircd.git
-RUN cd ~/anope && git checkout 2.0.3
-RUN cd ~/inspircd && git checkout v2.0.21
-# Setup and build inspircd
-RUN cd ~/inspircd; ./configure --enable-gnutls --enable-openssl --enable-epoll --enable-kqueue --prefix=/home/irc/ircd-build/
-RUN cd ~/inspircd; make; make install 
-# Need to add in SSL Certificate creation and placement
+# Клонируем исходники и переключаемся на нужные версии
+RUN git clone https://github.com/anope/anope.git && \
+    git clone https://github.com/inspircd/inspircd.git && \
+    cd anope && git checkout 2.0.3 && \
+    cd ../inspircd && git checkout v2.0.21
 
-# This might be changed to ADD and drop config files in there.
-RUN cd ~/ircd-build; cp conf/examples/inspircd.conf.example conf/
-# Setup and build Anope Services
-RUN cd ~/anope; cmake  -DINSTDIR:STRING=/home/irc/anope-services -DRUNGROUP:STRING=irc -DDEFUMASK:STRING=007 -DCMAKE_BUILD_TYPE:STRING=RELEASE -DUSE_PCH:BOOLEAN=OFF    ..
-RUN cd ~/anope/build; make; make install
+# Сборка InspIRCd
+RUN cd /home/irc/inspircd && \
+    ./configure --enable-gnutls --enable-openssl --enable-epoll --enable-kqueue --prefix=/home/irc/ircd-build && \
+    make && make install
+
+# Пример конфигурации
+RUN cp /home/irc/ircd-build/conf/examples/inspircd.conf.example /home/irc/ircd-build/conf/inspircd.conf
+
+# Сборка Anope
+RUN cd /home/irc/anope && \
+    cmake -Bbuild -DINSTDIR=/home/irc/anope-services \
+        -DRUNGROUP=irc \
+        -DDEFUMASK=007 \
+        -DCMAKE_BUILD_TYPE=RELEASE \
+        -DUSE_PCH=OFF \
+        . && \
+    cmake --build build && \
+    cmake --install build
+
+# Скрипт начальной генерации сертификатов и запуска IRC-сервера
+COPY entrypoint.sh /home/irc/entrypoint.sh
+RUN chmod +x /home/irc/entrypoint.sh
+
+ENTRYPOINT ["/home/irc/entrypoint.sh"]
